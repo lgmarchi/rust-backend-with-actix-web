@@ -5,5 +5,12 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4"
-uuid ={ version = "0.8", features = ["v4"]}
+uuid ={ version = "1.13.2", features = ["v4"]}
 serde = {version = "1", features = ["derive"] }
+aws-config = "1.5.16"
+aws-sdk-dybamodb = "0.8"
+eng_logger = "0.8"
+log = "0.4"
+strum_macros = "0.24"
+strum = {version = "0.27.1", features = ["derive"]}
+derive_more = "2.0.1"
