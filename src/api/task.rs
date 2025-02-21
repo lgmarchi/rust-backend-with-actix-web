@@ -10,7 +10,7 @@ use actix_web::{
     http::{header::ContentType, StatusCode}
 };
 use serde::{Serialize, Deserialize};
-use derive_more::{Display};
+use derive_more::Display;
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskIdentifier {
@@ -21,5 +21,5 @@ pub struct TaskIdentifier {
 
 #[get("/task/{task_global_id}")]
 pub async fn get_task(task_identifier: Path<TaskIdentifier>, body: Json<Struct>) -> Json<String> {
-    Json(task_identifier.into_inner().task_global_ide)
+    Json(task_identifier.into_inner().task_global_id)
 }
