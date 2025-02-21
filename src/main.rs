@@ -1,4 +1,5 @@
 mod api;
+mod model;
 mod repository;
 
 use api::task::
