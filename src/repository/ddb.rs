@@ -1,6 +1,6 @@
+use aws_config::SdkConfig;
+use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
-use aws_sdk_dynamodb::model::AttributeValue;
-use aws_config::Config;
 use crate::model::task::{Task, TaskState};
 use log::error;
 use std::str::FromStr;
@@ -52,7 +52,8 @@ fn item_to_task(item: &HashMap<String, AttributeValue>) -> Result<Task, DDBError
 }
 
 impl DDBRepository {
-    pub fn init(table_name: String, config: Config) -> DDBRepository{
+    pub fn init(table_name: String, config: SdkConfig) -> DDBRepository{
+
         let client = Client::new(&config);
         DDBRepository {
             table_name,
@@ -95,8 +96,8 @@ impl DDBRepository {
             .key_condition_expression("#pK = :user_id and #sK = :task_uuid")
             .expression_attribute_names("#pK", "pK")
             .expression_attribute_names("#sK", "sK")
-            .expression_attribute_names(":user_id", user_uuid)
-            .expression_attribute_names(":task_uuid", task_uuid)
+            .expression_attribute_names(":user_id", user_uuid.as_s().unwrap())
+            .expression_attribute_names(":task_uuid", task_uuid.as_s().unwrap())
             .send()
             .await;
 
@@ -115,7 +116,7 @@ impl DDBRepository {
                 }
             }, 
             Err(err) => {
-                error!("{:?}", error);
+                error!("{:?}", err);
                 None
             }
         }

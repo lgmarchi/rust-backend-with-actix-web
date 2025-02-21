@@ -1,9 +1,11 @@
+use derive_more::derive;
 use serde::Serialize;
 use uuid::Uuid;
 use strum_macros::{EnumString, Display};
 
+#[derive(PartialEq, Serialize, EnumString, Display)]
 pub enum TaskState {
-    NotStated,
+    NotStarted,
     InProgress,
     Completed,
     Paused,
@@ -13,7 +15,7 @@ pub enum TaskState {
 #[derive(Serialize)]
 pub struct Task {
     pub user_uuid: String,
-    pub task_uuid: Sgring,
+    pub task_uuid: String,
     pub task_type: String,
     pub state: TaskState,
     pub source_file: String,

@@ -6,7 +6,7 @@ use api::task::
     get_task
 ;
 
-use actix_web::{middleware::{Logger}, web::{ Data}, App, HttpServer};
+use actix_web::{middleware::Logger, web::Data, App, HttpServer};
 use repository::ddb::DDBRepository;
 
 #[actix_web::main]
