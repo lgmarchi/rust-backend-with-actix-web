@@ -1,9 +1,8 @@
-use derive_more::derive;
 use serde::Serialize;
 use uuid::Uuid;
 use strum_macros::{EnumString, Display};
 
-#[derive(PartialEq, Serialize, EnumString, Display)]
+#[derive(Eq, PartialEq, Serialize, EnumString, Display)]
 pub enum TaskState {
     NotStarted,
     InProgress,

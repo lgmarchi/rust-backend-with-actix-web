@@ -46,7 +46,7 @@ impl ResponseError for TaskError {
     fn error_response(&self) -> HttpResponse {
    
         HttpResponse::build(self.status_code())
-            .insert_header((ContentType::json()))
+            .insert_header(ContentType::json())
             .body(format!("{{\"error\": \"{}\"}}", self.to_string()))
     }
 
@@ -75,13 +75,31 @@ pub async fn get_task(task_identifier: Path<TaskIdentifier>,
     }
 }
 
+#[post("/task")]
+pub async fn submit_task(
+    ddb_repo: Data<DDBRepository>,
+    request: Json<SubmitTaskRequest>
+) -> Result<Json<TaskIdentifier>, TaskError> {
+    let task = Task::new(
+        request.user_id.clone(),
+        request.task_type.clone(),
+        request.source_file.clone()
+    );
+
+    let task_identifier = task.get_global_id();
+    match ddb_repo.put_task(task).await {
+        Ok(_) => Ok(Json(TaskIdentifier {task_global_id: task_identifier})),
+        Err(_) => Err(TaskError::TaskCreationFailure)
+    }
+}
+
 async fn state_transition(
     ddb_repo: Data<DDBRepository>,
     task_global_id: String,
     new_state: TaskState,
     result_file: Option<String>
 ) -> Result<Json<TaskIdentifier>, TaskError> {
-    let task = match ddb_repo.get_task(
+    let mut task = match ddb_repo.get_task(
         task_global_id
     ).await {
         Some(task) => task,
@@ -108,4 +126,30 @@ pub async fn start_task(
     task_identifier: Path<TaskIdentifier>
 ) -> Result<Json<TaskIdentifier>, TaskError>  {
     state_transition(ddb_repo, task_identifier.into_inner().task_global_id, TaskState::InProgress, None).await
+}
+
+#[put("/task/{task_global_id}/complete")]
+pub async fn complete_task(
+    ddb_repo: Data<DDBRepository>,
+    task_identifier: Path<TaskIdentifier>,
+    request: Json<TaskCompletionRequest>
+) -> Result<Json<TaskIdentifier>, TaskError> {
+    state_transition(ddb_repo, task_identifier.into_inner().task_global_id, TaskState::Completed, Some(request.result_file.clone())).await
+}
+
+#[put("/task/{task_global_id}/fail")]
+pub async fn fail_task(
+    ddb_repo: Data<DDBRepository>,
+    task_identifier: Path<TaskIdentifier>,
+    request: Json<TaskCompletionRequest>
+) -> Result<Json<TaskIdentifier>, TaskError> {
+    state_transition(ddb_repo, task_identifier.into_inner().task_global_id, TaskState::Failed, Some(request.result_file.clone())).await
+}
+
+#[put("/task/{task_global_id}/pause")]
+pub async fn pause_task(
+    ddb_repo: Data<DDBRepository>,
+    task_identifier: Path<TaskIdentifier>
+) -> Result<Json<TaskIdentifier>, TaskError> {
+    state_transition(ddb_repo, task_identifier.into_inner().task_global_id, TaskState::Paused, None).await
 }
